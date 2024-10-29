@@ -24,28 +24,28 @@ services:
     volumes:
       - ./data/kafka:/kafka/data
 
-  rabbitmq:
-    image: rabbitmq:management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - my_shared_network
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+  # rabbitmq:
+  #   image: rabbitmq:management
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   networks:
+  #     - my_shared_network
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
 
   # Message Brokers Management Tools
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_SERVERS: "${KAFKA_BROKER}"
-    networks:
-      - my_shared_network
-    depends_on:
-      - kafka
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop
+  #   ports:
+  #     - "9000:9000"
+  #   environment:
+  #     KAFKA_SERVERS: "${KAFKA_BROKER}"
+  #   networks:
+  #     - my_shared_network
+  #   depends_on:
+  #     - kafka
 
   # Databases
   mysql:
@@ -76,7 +76,6 @@ services:
       - "27017:27017"
     volumes:
       - ./data/mongodb:/data/db
-      - ./databases/mongodb/service/init.js:/docker-entrypoint-initdb.d/mongo-init.js
     networks:
       - my_shared_network
     healthcheck:
@@ -95,7 +94,6 @@ services:
       - "5432:5432"
     volumes:
       - ./data/postgresql:/var/lib/postgresql/data
-      - ./databases/postgresql/service/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - my_shared_network
     healthcheck:
@@ -104,27 +102,27 @@ services:
       timeout: 5s
       retries: 5
 
-  cassandra:
-    image: cassandra:latest
-    environment:
-      - CASSANDRA_CLUSTER_NAME=${CASSANDRA_CLUSTER_NAME}
-      - CASSANDRA_DC=DC1
-      - CASSANDRA_RACK=Rack1
-    ports:
-      - "9042:9042"
-    networks:
-      - my_shared_network
+  # cassandra:
+  #   image: cassandra:latest
+  #   environment:
+  #     - CASSANDRA_CLUSTER_NAME=${CASSANDRA_CLUSTER_NAME}
+  #     - CASSANDRA_DC=DC1
+  #     - CASSANDRA_RACK=Rack1
+  #   ports:
+  #     - "9042:9042"
+  #   networks:
+  #     - my_shared_network
 
-  clickhouse:
-    image: clickhouse/clickhouse-server
-    ports:
-      - "9000:9000"
-      - "8123:8123"
-    volumes:
-      - ./data/clickhouse:/var/lib/clickhouse
-      - ./databases/clickhouse/service/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - my_shared_network
+  # clickhouse:
+  #   image: clickhouse/clickhouse-server
+  #   ports:
+  #     - "9000:9000"
+  #     - "8123:8123"
+  #   volumes:
+  #     - ./data/clickhouse:/var/lib/clickhouse
+  #     - ./databases/clickhouse/service/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   networks:
+  #     - my_shared_network
 
   redis:
     image: redis:latest
@@ -148,87 +146,87 @@ services:
     networks:
       - my_shared_network
 
-  neo4j:
-    image: neo4j:4.4
-    environment:
-      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
-    ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - ./data/neo4j:/data
-    networks:
-      - my_shared_network
+  # neo4j:
+  #   image: neo4j:4.4
+  #   environment:
+  #     - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   volumes:
+  #     - ./data/neo4j:/data
+  #   networks:
+  #     - my_shared_network
 
-  couchdb:
-    image: couchdb:latest
-    ports:
-      - "5984:5984"
-    environment:
-      - COUCHDB_USER=${COUCHDB_USER}
-      - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
-    volumes:
-      - ./data/couchdb:/opt/couchdb/data
-    networks:
-      - my_shared_network
+  # couchdb:
+  #   image: couchdb:latest
+  #   ports:
+  #     - "5984:5984"
+  #   environment:
+  #     - COUCHDB_USER=${COUCHDB_USER}
+  #     - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
+  #   volumes:
+  #     - ./data/couchdb:/opt/couchdb/data
+  #   networks:
+  #     - my_shared_network
 
   # Database Management Tools
-  mysql_ui:
-    image: phpmyadmin/phpmyadmin
-    environment:
-      PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "8081:80"
-    networks:
-      - my_shared_network
-    depends_on:
-      - mysql
+  # mysql_ui:
+  #   image: phpmyadmin/phpmyadmin
+  #   environment:
+  #     PMA_HOST: mysql
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  #   ports:
+  #     - "8081:80"
+  #   networks:
+  #     - my_shared_network
+  #   depends_on:
+  #     - mysql
 
-  mongo_ui:
-    image: mongo-express
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-      ME_CONFIG_BASICAUTH: false
-    ports:
-      - "8082:8081"
-    networks:
-      - my_shared_network
-    depends_on:
-      - mongo
+  # mongo_ui:
+  #   image: mongo-express
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  #     ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+  #     ME_CONFIG_BASICAUTH: false
+  #   ports:
+  #     - "8082:8081"
+  #   networks:
+  #     - my_shared_network
+  #   depends_on:
+  #     - mongo
 
-  postgresql_ui:
-    image: dpage/pgadmin4
-    ports:
-      - "8083:80"
-    volumes:
-      - ./databases/postgresql/service-ui/servers.json:/pgadmin4/servers.json
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "${POSTGRES_USER}@${DOMAIN}"
-      PGADMIN_DEFAULT_PASSWORD: "${POSTGRES_PASSWORD}"
-    networks:
-      - my_shared_network
-    depends_on:
-      - postgresql
+  # postgresql_ui:
+  #   image: dpage/pgadmin4
+  #   ports:
+  #     - "8083:80"
+  #   volumes:
+  #     - ./databases/postgresql/service-ui/servers.json:/pgadmin4/servers.json
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: "${POSTGRES_USER}@${DOMAIN}"
+  #     PGADMIN_DEFAULT_PASSWORD: "${POSTGRES_PASSWORD}"
+  #   networks:
+  #     - my_shared_network
+  #   depends_on:
+  #     - postgresql
 
-  dbeaver:
-    image: dbeaver/cloudbeaver
-    ports:
-      - "8084:8080" # DBeaver web interface
-    networks:
-      - my_shared_network
-    depends_on:
-      - mysql
-      - mongo
-      - postgresql
-      - cassandra
-      - redis
-      - influxdb
-      - elasticsearch
-    command: >
-      sh -c "while true; do sleep 30; done"
+  # dbeaver:
+  #   image: dbeaver/cloudbeaver
+  #   ports:
+  #     - "8084:8080" # DBeaver web interface
+  #   networks:
+  #     - my_shared_network
+  #   depends_on:
+  #     - mysql
+  #     - mongo
+  #     - postgresql
+  #     - cassandra
+  #     - redis
+  #     - influxdb
+  #     - elasticsearch
+  #   command: >
+  #     sh -c "while true; do sleep 30; done"
 
   # Elasticsearch Services
   elasticsearch:
@@ -250,31 +248,31 @@ services:
       - my_shared_network
 
   # Monitoring Services
-  prometheus:
-    image: prom/prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - my_shared_network
+  # prometheus:
+  #   image: prom/prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - my_shared_network
 
-  grafana:
-    image: grafana/grafana
-    ports:
-      - "3000:3000"
-    networks:
-      - my_shared_network
+  # grafana:
+  #   image: grafana/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - my_shared_network
 
   # Web Services
-  web:
-    image: nginx:latest
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    networks:
-      - my_shared_network
+  # web:
+  #   image: nginx:latest
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #   networks:
+  #     - my_shared_network
 
 networks:
   my_shared_network:
