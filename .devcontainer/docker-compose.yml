@@ -16,4 +16,4 @@ services:
 
 networks:
   shared_network:
-    driver: bridge
+    external: true # Ensure this network exists or create it manually

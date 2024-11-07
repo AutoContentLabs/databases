@@ -7,7 +7,7 @@ services:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_BROKER}
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
@@ -20,7 +20,7 @@ services:
       - "9092:9092"
       - "9093:9093"
     networks:
-      - my_shared_network
+      - shared_network
     volumes:
       - ./data/kafka:/kafka/data
 
@@ -30,7 +30,7 @@ services:
   #     - "5672:5672"
   #     - "15672:15672"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
   #   environment:
   #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
   #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -43,7 +43,7 @@ services:
   #   environment:
   #     KAFKA_SERVERS: "${KAFKA_BROKER}"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
   #   depends_on:
   #     - kafka
 
@@ -60,7 +60,7 @@ services:
     volumes:
       - ./data/mysql:/var/lib/mysql
     networks:
-      - my_shared_network
+      - shared_network
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}" ]
       interval: 10s
@@ -77,7 +77,7 @@ services:
     volumes:
       - ./data/mongodb:/data/db
     networks:
-      - my_shared_network
+      - shared_network
     healthcheck:
       test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
       interval: 10s
@@ -95,7 +95,7 @@ services:
     volumes:
       - ./data/postgresql:/var/lib/postgresql/data
     networks:
-      - my_shared_network
+      - shared_network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
@@ -111,7 +111,7 @@ services:
   #   ports:
   #     - "9042:9042"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   # clickhouse:
   #   image: clickhouse/clickhouse-server
@@ -120,9 +120,8 @@ services:
   #     - "8123:8123"
   #   volumes:
   #     - ./data/clickhouse:/var/lib/clickhouse
-  #     - ./databases/clickhouse/service/init.sql:/docker-entrypoint-initdb.d/init.sql
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   redis:
     image: redis:latest
@@ -131,7 +130,7 @@ services:
     volumes:
       - ./data/redis:/data
     networks:
-      - my_shared_network
+      - shared_network
 
   influxdb:
     image: influxdb
@@ -144,7 +143,7 @@ services:
     volumes:
       - ./data/influxdb:/var/lib/influxdb
     networks:
-      - my_shared_network
+      - shared_network
 
   # neo4j:
   #   image: neo4j:4.4
@@ -156,7 +155,7 @@ services:
   #   volumes:
   #     - ./data/neo4j:/data
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   # couchdb:
   #   image: couchdb:latest
@@ -168,7 +167,7 @@ services:
   #   volumes:
   #     - ./data/couchdb:/opt/couchdb/data
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   # Database Management Tools
   # mysql_ui:
@@ -179,7 +178,7 @@ services:
   #   ports:
   #     - "8081:80"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
   #   depends_on:
   #     - mysql
 
@@ -193,7 +192,7 @@ services:
   #   ports:
   #     - "8082:8081"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
   #   depends_on:
   #     - mongo
 
@@ -202,7 +201,7 @@ services:
   #   ports:
   #     - "8083:80"
   #   volumes:
-  #     - ./databases/postgresql/service-ui/servers.json:/pgadmin4/servers.json
+  #     - ./db/postgresql/service_ui/servers.json:/pgadmin4/servers.json
   #   environment:
   #     PGADMIN_DEFAULT_EMAIL: "${POSTGRES_USER}@${DOMAIN}"
   #     PGADMIN_DEFAULT_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -238,14 +237,14 @@ services:
       - "9200:9200"
       - "9300:9300"
     networks:
-      - my_shared_network
+      - shared_network
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.1
     ports:
       - "5601:5601"
     networks:
-      - my_shared_network
+      - shared_network
 
   # Monitoring Services
   # prometheus:
@@ -255,14 +254,14 @@ services:
   #   volumes:
   #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   # grafana:
   #   image: grafana/grafana
   #   ports:
   #     - "3000:3000"
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
   # Web Services
   # web:
@@ -272,8 +271,8 @@ services:
   #   volumes:
   #     - ./nginx.conf:/etc/nginx/nginx.conf
   #   networks:
-  #     - my_shared_network
+  #     - shared_network
 
 networks:
-  my_shared_network:
-    driver: bridge
+  shared_network:
+    external: true # Ensure this network exists or create it manually
