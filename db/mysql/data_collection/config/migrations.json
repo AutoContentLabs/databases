@@ -1,23 +1,23 @@
 {
-  "database": "data_hub",
+  "database": "data_collection",
   "config_file": {
-    "mysql": "/db/mysql/data_hub/config/mysql.cnf"
+    "mysql": "/db/mysql/data_collection/config/mysql.cnf"
   },
   "migration_type": "mysql",
   "migration_file_format": "sql",
   "migration_table": "_migration_history",
-  "migrations_directory": "/db/mysql/data_hub/migrations/versions",
+  "migrations_directory": "/db/mysql/data_collection/migrations/versions",
   "rollback": {
     "enabled": true,
-    "rollback_directory": "/db/mysql/data_hub/migrations/rollback"
+    "rollback_directory": "/db/mysql/data_collection/migrations/rollback"
   },
   "error_handling": {
     "log_errors": true,
-    "error_log_file": "/logs/db/mysql/data_hub/migration.log"
+    "error_log_file": "/logs/db/mysql/data_collection/migration.log"
   },
   "backup": {
     "enabled": true,
-    "backup_directory": "/backup/db/mysql/data_hub"
+    "backup_directory": "/backup/db/mysql/data_collection"
   },
   "migration_details": {
     "description": true,

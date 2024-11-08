@@ -7,5 +7,5 @@
 -- @purpose: audit functionality for transaction tables
 -- @description: file contains SQL scripts for setting up audit logs on transactional tables.
 -- ===================================================================================
-SOURCE db/mysql/data_hub/schemas/audit/tables/table_audit_log.sql;
+SOURCE db/mysql/data_collection/schemas/audit/tables/table_audit_log.sql;
 COMMIT;
