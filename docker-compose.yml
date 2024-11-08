@@ -1,83 +1,78 @@
 services:
 
+  app:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - backup:/backup
+      - logs:/logs
+    networks:
+      - network_shared
+    entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   # Message Brokers
   kafka:
     image: apache/kafka:latest
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${KAFKA_BROKER}
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_NUM_PARTITIONS: 3
+    env_file: .env
     ports:
       - "9092:9092"
       - "9093:9093"
     networks:
-      - shared_network
+      - network_shared
     volumes:
-      - ./data/kafka:/kafka/data
+      - data_kafka:/kafka/data
 
   # rabbitmq:
   #   image: rabbitmq:management
+  #   env_file: .env
   #   ports:
   #     - "5672:5672"
   #     - "15672:15672"
   #   networks:
-  #     - shared_network
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+  #     - network_shared
 
   # Message Brokers Management Tools
   # kafdrop:
+  #   env_file: .env
   #   image: obsidiandynamics/kafdrop
   #   ports:
   #     - "9000:9000"
-  #   environment:
-  #     KAFKA_SERVERS: "${KAFKA_BROKER}"
   #   networks:
-  #     - shared_network
+  #     - network_shared
   #   depends_on:
   #     - kafka
 
-  # Databases
   mysql:
-    image: mysql:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    image: mysql:9.0
+    env_file: .env
     ports:
       - "3306:3306"
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - /var/run/mysqld:/var/run/mysqld
+      - data_mysql:/var/lib/mysql
     networks:
-      - shared_network
+      - network_shared
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${MYSQL_USER}", "-p${MYSQL_PASSWORD}" ]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
-      timeout: 5s
       retries: 5
+      start_period: 30s
+      timeout: 10s
 
   mongo:
     image: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    env_file: .env
     ports:
       - "27017:27017"
     volumes:
-      - ./data/mongodb:/data/db
+      - data_mongodb:/data/db
     networks:
-      - shared_network
+      - network_shared
     healthcheck:
       test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
       interval: 10s
@@ -86,16 +81,13 @@ services:
 
   postgresql:
     image: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB_NAME}
+    env_file: .env
     ports:
       - "5432:5432"
     volumes:
-      - ./data/postgresql:/var/lib/postgresql/data
+      - data_postgresql:/var/lib/postgresql/data
     networks:
-      - shared_network
+      - network_shared
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
@@ -104,118 +96,104 @@ services:
 
   # cassandra:
   #   image: cassandra:latest
-  #   environment:
-  #     - CASSANDRA_CLUSTER_NAME=${CASSANDRA_CLUSTER_NAME}
-  #     - CASSANDRA_DC=DC1
-  #     - CASSANDRA_RACK=Rack1
+  #   env_file: .env
   #   ports:
   #     - "9042:9042"
   #   networks:
-  #     - shared_network
+  #     - network_shared
 
-  # clickhouse:
-  #   image: clickhouse/clickhouse-server
-  #   ports:
-  #     - "9000:9000"
-  #     - "8123:8123"
-  #   volumes:
-  #     - ./data/clickhouse:/var/lib/clickhouse
-  #   networks:
-  #     - shared_network
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    env_file: .env
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - data_clickhouse:/var/lib/clickhouse
+    networks:
+      - network_shared
 
   redis:
     image: redis:latest
+    env_file: .env
     ports:
       - "6379:6379"
     volumes:
-      - ./data/redis:/data
+      - data_redis:/data
     networks:
-      - shared_network
+      - network_shared
 
-  influxdb:
-    image: influxdb
-    ports:
-      - "8086:8086"
-    environment:
-      INFLUXDB_DB: ${INFLUXDB_DB}
-      INFLUXDB_ADMIN_USER: ${INFLUXDB_ADMIN_USER}
-      INFLUXDB_ADMIN_PASSWORD: ${INFLUXDB_ADMIN_PASSWORD}
-    volumes:
-      - ./data/influxdb:/var/lib/influxdb
-    networks:
-      - shared_network
+  # influxdb:
+  #   image: influxdb
+  #   env_file: .env
+  #   ports:
+  #     - "8086:8086"
+  #   volumes:
+  #     - data_influxdb:/var/lib/influxdb
+  #   networks:
+  #     - network_shared
 
   # neo4j:
   #   image: neo4j:4.4
-  #   environment:
-  #     - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+  #   env_file: .env
   #   ports:
   #     - "7474:7474"
   #     - "7687:7687"
   #   volumes:
-  #     - ./data/neo4j:/data
+  #     - data_neo4j:/data
   #   networks:
-  #     - shared_network
+  #     - network_shared
 
   # couchdb:
   #   image: couchdb:latest
+  #   env_file: .env
   #   ports:
   #     - "5984:5984"
-  #   environment:
-  #     - COUCHDB_USER=${COUCHDB_USER}
-  #     - COUCHDB_PASSWORD=${COUCHDB_PASSWORD}
   #   volumes:
-  #     - ./data/couchdb:/opt/couchdb/data
+  #     - data_couchdb:/opt/couchdb/data
   #   networks:
-  #     - shared_network
+  #     - network_shared
 
   # Database Management Tools
   # mysql_ui:
+  #   env_file: .env
   #   image: phpmyadmin/phpmyadmin
-  #   environment:
-  #     PMA_HOST: mysql
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
   #   ports:
   #     - "8081:80"
   #   networks:
-  #     - shared_network
+  #     - network_shared
   #   depends_on:
   #     - mysql
 
   # mongo_ui:
   #   image: mongo-express
-  #   environment:
-  #     ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-  #     ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-  #     ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-  #     ME_CONFIG_BASICAUTH: false
+  #   env_file: .env
   #   ports:
   #     - "8082:8081"
   #   networks:
-  #     - shared_network
+  #     - network_shared
   #   depends_on:
   #     - mongo
 
   # postgresql_ui:
   #   image: dpage/pgadmin4
+  #   env_file: .env
   #   ports:
   #     - "8083:80"
   #   volumes:
-  #     - ./db/postgresql/service_ui/servers.json:/pgadmin4/servers.json
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: "${POSTGRES_USER}@${DOMAIN}"
-  #     PGADMIN_DEFAULT_PASSWORD: "${POSTGRES_PASSWORD}"
+  #     - ./db/postgresql/service-ui/servers.json:/pgadmin4/servers.json
   #   networks:
-  #     - my_shared_network
+  #     - network_shared
   #   depends_on:
   #     - postgresql
 
   # dbeaver:
   #   image: dbeaver/cloudbeaver
+  #   env_file: .env
   #   ports:
   #     - "8084:8080" # DBeaver web interface
   #   networks:
-  #     - my_shared_network
+  #     - network_shared
   #   depends_on:
   #     - mysql
   #     - mongo
@@ -230,6 +208,7 @@ services:
   # Elasticsearch Services
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    env_file: .env
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
@@ -237,31 +216,34 @@ services:
       - "9200:9200"
       - "9300:9300"
     networks:
-      - shared_network
+      - network_shared
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.10.1
-    ports:
-      - "5601:5601"
-    networks:
-      - shared_network
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:7.10.1
+  #   env_file: .env
+  #   ports:
+  #     - "5601:5601"
+  #   networks:
+  #     - network_shared
 
   # Monitoring Services
   # prometheus:
   #   image: prom/prometheus
+  #   env_file: .env
   #   ports:
   #     - "9090:9090"
   #   volumes:
   #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
   #   networks:
-  #     - shared_network
+  #     - network_shared
 
   # grafana:
   #   image: grafana/grafana
+  #   env_file: .env
   #   ports:
   #     - "3000:3000"
   #   networks:
-  #     - shared_network
+  #     - network_shared
 
   # Web Services
   # web:
@@ -271,8 +253,21 @@ services:
   #   volumes:
   #     - ./nginx.conf:/etc/nginx/nginx.conf
   #   networks:
-  #     - shared_network
+  #     - network_shared
+
+volumes:
+  backup:
+  logs:
+  data_kafka:
+  data_mysql:
+  data_mongodb:
+  data_postgresql:
+  data_clickhouse:
+  data_redis:
+  data_influxdb:
+  data_neo4j:
+  data_couchdb:
 
 networks:
-  shared_network:
+  network_shared: # docker network create network_shared
     external: true # Ensure this network exists or create it manually

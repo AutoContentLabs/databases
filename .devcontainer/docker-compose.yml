@@ -1,19 +1,45 @@
 services:
 
   app:
+    env_file: .env
     build:
-      context: .
-      dockerfile: Dockerfile
-
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker-host.sock
       - ../..:/workspaces:cached
+      - backup:/backup
+      - logs:/logs
     networks:
-      - shared_network
+      - network_development
+    entrypoint: [ "/bin/sh", "-c", ".devcontainer/entrypoint.sh" ]
+    depends_on:
+      mysql:
+        condition: service_healthy
 
-    entrypoint: /usr/local/share/docker-init.sh
-    command: sleep infinity
+  mysql:
+    image: mysql:9.0
+    env_file: .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/run/mysqld:/var/run/mysqld
+      - data_mysql:/var/lib/mysql
+    networks:
+      - network_development
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+volumes:
+  data_mysql:
+  backup:
+  logs:
+
 
 networks:
-  shared_network:
-    external: true # Ensure this network exists or create it manually
+  network_development: # docker network create network_development
+    driver: bridge
