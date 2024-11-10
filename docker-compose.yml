@@ -17,15 +17,19 @@ services:
 
   # Message Brokers
   kafka:
-    image: apache/kafka:latest
-    env_file: .env
-    ports:
-      - "9092:9092"
-      - "9093:9093"
+    image: apache/kafka-native:latest
+    container_name: kafka
     networks:
       - network_shared
-    volumes:
-      - data_kafka:/kafka/data
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    env_file: .env
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
+      interval: 1s # It may take some time for the group coordinator to become fully accessible.
+      retries: 5
+      timeout: 5s
 
   # rabbitmq:
   #   image: rabbitmq:management
@@ -217,7 +221,6 @@ services:
       - "9300:9300"
     networks:
       - network_shared
-
   # kibana:
   #   image: docker.elastic.co/kibana/kibana:7.10.1
   #   env_file: .env
@@ -268,6 +271,8 @@ volumes:
   data_neo4j:
   data_couchdb:
 
+
 networks:
-  network_shared: # docker network create network_shared
+  network_shared:
+    # docker network create network_shared
     external: true # Ensure this network exists or create it manually
