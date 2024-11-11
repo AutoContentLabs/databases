@@ -17,7 +17,7 @@ services:
 
   # Message Brokers
   kafka:
-    image: apache/kafka-native:latest
+    image: apache/kafka-native:3.9.0
     networks:
       - network_shared
     ports:
