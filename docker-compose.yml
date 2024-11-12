@@ -30,25 +30,30 @@ services:
       retries: 5
       timeout: 5s
 
-  # rabbitmq:
-  #   image: rabbitmq:management
-  #   env_file: .env
-  #   ports:
-  #     - "5672:5672"
-  #     - "15672:15672"
-  #   networks:
-  #     - network_shared
+  rabbitmq:
+    image: rabbitmq:management
+    env_file: .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - network_shared
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
+      interval: 10s
+      retries: 5
+      timeout: 10s
 
   # Message Brokers Management Tools
-  # kafdrop:
-  #   env_file: .env
-  #   image: obsidiandynamics/kafdrop
-  #   ports:
-  #     - "9000:9000"
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - kafka
+  kafdrop:
+    env_file: .env
+    image: obsidiandynamics/kafdrop:4.0.2
+    ports:
+      - "9001:9000"
+    networks:
+      - network_shared
+    depends_on:
+      - kafka
 
   mysql:
     image: mysql:9.0
@@ -60,6 +65,10 @@ services:
       - data_mysql:/var/lib/mysql
     networks:
       - network_shared
+    # performans
+    mem_limit: 2g
+    cpu_shares: 1024
+    # check
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       interval: 10s
@@ -68,7 +77,7 @@ services:
       timeout: 10s
 
   mongo:
-    image: mongo
+    image: mongo:8.0.3
     env_file: .env
     ports:
       - "27017:27017"
@@ -83,7 +92,7 @@ services:
       retries: 5
 
   postgresql:
-    image: postgres
+    image: postgres:13
     env_file: .env
     ports:
       - "5432:5432"
@@ -97,16 +106,16 @@ services:
       timeout: 5s
       retries: 5
 
-  # cassandra:
-  #   image: cassandra:latest
-  #   env_file: .env
-  #   ports:
-  #     - "9042:9042"
-  #   networks:
-  #     - network_shared
+  cassandra:
+    image: cassandra:5
+    env_file: .env
+    ports:
+      - "9042:9042"
+    networks:
+      - network_shared
 
   clickhouse:
-    image: clickhouse/clickhouse-server
+    image: clickhouse/clickhouse-server:24
     env_file: .env
     ports:
       - "9000:9000"
@@ -117,7 +126,7 @@ services:
       - network_shared
 
   redis:
-    image: redis:latest
+    image: redis:7
     env_file: .env
     ports:
       - "6379:6379"
@@ -126,91 +135,91 @@ services:
     networks:
       - network_shared
 
-  # influxdb:
-  #   image: influxdb
-  #   env_file: .env
-  #   ports:
-  #     - "8086:8086"
-  #   volumes:
-  #     - data_influxdb:/var/lib/influxdb
-  #   networks:
-  #     - network_shared
+  influxdb:
+    image: influxdb:2
+    env_file: .env
+    ports:
+      - "8086:8086"
+    volumes:
+      - data_influxdb:/var/lib/influxdb
+    networks:
+      - network_shared
 
-  # neo4j:
-  #   image: neo4j:4.4
-  #   env_file: .env
-  #   ports:
-  #     - "7474:7474"
-  #     - "7687:7687"
-  #   volumes:
-  #     - data_neo4j:/data
-  #   networks:
-  #     - network_shared
+  neo4j:
+    image: neo4j:5
+    env_file: .env
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - data_neo4j:/data
+    networks:
+      - network_shared
 
-  # couchdb:
-  #   image: couchdb:latest
-  #   env_file: .env
-  #   ports:
-  #     - "5984:5984"
-  #   volumes:
-  #     - data_couchdb:/opt/couchdb/data
-  #   networks:
-  #     - network_shared
+  couchdb:
+    image: couchdb:3
+    env_file: .env
+    ports:
+      - "5984:5984"
+    volumes:
+      - data_couchdb:/opt/couchdb/data
+    networks:
+      - network_shared
 
   # Database Management Tools
-  # mysql_ui:
-  #   env_file: .env
-  #   image: phpmyadmin/phpmyadmin
-  #   ports:
-  #     - "8081:80"
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - mysql
+  mysql_ui:
+    env_file: .env
+    image: phpmyadmin:5
+    ports:
+      - "8081:80"
+    networks:
+      - network_shared
+    depends_on:
+      - mysql
 
-  # mongo_ui:
-  #   image: mongo-express
-  #   env_file: .env
-  #   ports:
-  #     - "8082:8081"
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - mongo
+  mongo_ui:
+    image: mongo-express:1.0.2
+    env_file: .env
+    ports:
+      - "8083:8081"
+    networks:
+      - network_shared
+    depends_on:
+      - mongo
 
-  # postgresql_ui:
-  #   image: dpage/pgadmin4
-  #   env_file: .env
-  #   ports:
-  #     - "8083:80"
-  #   volumes:
-  #     - ./db/postgresql/service-ui/servers.json:/pgadmin4/servers.json
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - postgresql
+  postgresql_ui:
+    image: dpage/pgadmin4:8
+    env_file: .env
+    ports:
+      - "8084:80"
+    volumes:
+      - ./db/postgresql/service-ui/servers.json:/pgadmin4/servers.json
+    networks:
+      - network_shared
+    depends_on:
+      - postgresql
 
-  # dbeaver:
-  #   image: dbeaver/cloudbeaver
-  #   env_file: .env
-  #   ports:
-  #     - "8084:8080" # DBeaver web interface
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - mysql
-  #     - mongo
-  #     - postgresql
-  #     - cassandra
-  #     - redis
-  #     - influxdb
-  #     - elasticsearch
-  #   command: >
-  #     sh -c "while true; do sleep 30; done"
+  dbeaver:
+    image: dbeaver/cloudbeaver:24
+    env_file: .env
+    ports:
+      - "8085:8080" # DBeaver web interface
+    networks:
+      - network_shared
+    depends_on:
+      - mysql
+      - mongo
+      - postgresql
+      - cassandra
+      - redis
+      - influxdb
+      - elasticsearch
+    command: >
+      sh -c "while true; do sleep 30; done"
 
   # Elasticsearch Services
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    image: elasticsearch:8.15.3
     env_file: .env
     environment:
       - discovery.type=single-node
@@ -220,42 +229,88 @@ services:
       - "9300:9300"
     networks:
       - network_shared
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:7.10.1
-  #   env_file: .env
-  #   ports:
-  #     - "5601:5601"
-  #   networks:
-  #     - network_shared
+
+  kibana:
+    image: kibana:8.15.3
+    env_file: .env
+    ports:
+      - "5601:5601"
+    networks:
+      - network_shared
 
   # Monitoring Services
-  # prometheus:
-  #   image: prom/prometheus
-  #   env_file: .env
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   networks:
-  #     - network_shared
+  prometheus:
+    image: prom/prometheus:v2.53.3
+    env_file: .env
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - network_shared
 
-  # grafana:
-  #   image: grafana/grafana
-  #   env_file: .env
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - network_shared
+  # All Database Exporter
+  mysql-exporter:
+    image: prom/mysqld-exporter:latest
+    env_file: .env
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+
+  mongo-exporter:
+    image: bitnami/mongodb-exporter:latest
+    env_file: .env
+    ports:
+      - "9216:9216"
+    depends_on:
+      - mongo
+
+  postgres-exporter:
+    image: wrouesnel/postgres_exporter:latest
+    env_file: .env
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgresql
+
+  kafka-exporter:
+    image: bitnami/kafka-exporter:latest
+    env_file: .env
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    env_file: .env
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    env_file: .env
+    volumes:
+      - ./monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
+    ports:
+      - "3000:3000"
+    networks:
+      - network_shared
+    depends_on:
+      - prometheus
 
   # Web Services
-  # web:
-  #   image: nginx:latest
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf
-  #   networks:
-  #     - network_shared
+  web:
+    image: nginx:1.27
+    ports:
+      - "80:80"
+    volumes:
+      - ./web/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - network_shared
 
 volumes:
   backup:
