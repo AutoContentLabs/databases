@@ -45,16 +45,17 @@ services:
   #     timeout: 10s
 
   # # Message Brokers Management Tools
-  # kafdrop:
-  #   env_file: .env
-  #   image: obsidiandynamics/kafdrop:4.0.2
-  #   ports:
-  #     - "9001:9000"
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - kafka
-
+  kafdrop:
+    image: obsidiandynamics/kafdrop:4.0.2
+    ports:
+      - "9001:9000"
+    networks:
+      - network_shared
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKERCONNECT=kafka:19092
+      
   # mysql:
   #   image: mysql:9.0
   #   env_file: .env
@@ -312,18 +313,18 @@ services:
   #   networks:
   #     - network_shared
 
-# volumes:
-#   backup:
-#   logs:
-#   data_kafka:
-#   data_mysql:
-#   data_mongodb:
-#   data_postgresql:
-#   data_clickhouse:
-#   data_redis:
-#   data_influxdb:
-#   data_neo4j:
-#   data_couchdb:
+  # volumes:
+  #   backup:
+  #   logs:
+  #   data_kafka:
+  #   data_mysql:
+  #   data_mongodb:
+  #   data_postgresql:
+  #   data_clickhouse:
+  #   data_redis:
+  #   data_influxdb:
+  #   data_neo4j:
+  #   data_couchdb:
 
 
 networks:
