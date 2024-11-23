@@ -30,19 +30,19 @@ services:
       retries: 5
       timeout: 5s
 
-  # rabbitmq:
-  #   image: rabbitmq:management
-  #   env_file: .env
-  #   ports:
-  #     - "5672:5672"
-  #     - "15672:15672"
-  #   networks:
-  #     - network_shared
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
-  #     interval: 10s
-  #     retries: 5
-  #     timeout: 10s
+  rabbitmq:
+    image: rabbitmq:4-management
+    env_file: .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - network_shared
+    # healthcheck:
+    #   test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
+    #   interval: 10s
+    #   retries: 5
+    #   timeout: 10s
 
   # # Message Brokers Management Tools
   kafdrop:
@@ -55,7 +55,8 @@ services:
       - kafka
     environment:
       - KAFKA_BROKERCONNECT=kafka:19092
-      
+
+  # Databases
   # mysql:
   #   image: mysql:9.0
   #   env_file: .env
@@ -126,15 +127,15 @@ services:
   #   networks:
   #     - network_shared
 
-  # redis:
-  #   image: redis:7
-  #   env_file: .env
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - data_redis:/data
-  #   networks:
-  #     - network_shared
+  redis:
+    image: redis:7
+    env_file: .env
+    ports:
+      - "6379:6379"
+    volumes:
+      - data_redis:/data
+    networks:
+      - network_shared
 
   # influxdb:
   #   image: influxdb:2
@@ -313,18 +314,18 @@ services:
   #   networks:
   #     - network_shared
 
-  # volumes:
-  #   backup:
-  #   logs:
-  #   data_kafka:
-  #   data_mysql:
-  #   data_mongodb:
-  #   data_postgresql:
-  #   data_clickhouse:
-  #   data_redis:
-  #   data_influxdb:
-  #   data_neo4j:
-  #   data_couchdb:
+volumes:
+  # backup:
+  # logs:
+  # data_kafka:
+  # data_mysql:
+  # data_mongodb:
+  # data_postgresql:
+  # data_clickhouse:
+  data_redis:
+  # data_influxdb:
+  # data_neo4j:
+  # data_couchdb:
 
 
 networks:
