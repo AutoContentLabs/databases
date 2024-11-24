@@ -24,6 +24,10 @@ services:
       - '9092:9092'
       - '9093:9093'
     env_file: .env
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
     healthcheck:
       test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
       interval: 30s # It may take some time for the group coordinator to become fully accessible.
@@ -38,13 +42,17 @@ services:
       - "15672:15672"
     networks:
       - network_shared
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
     # healthcheck:
     #   test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
     #   interval: 10s
     #   retries: 5
     #   timeout: 10s
 
-  # # Message Brokers Management Tools
+    # # Message Brokers Management Tools
   kafdrop:
     image: obsidiandynamics/kafdrop:4.0.2
     ports:
@@ -55,6 +63,10 @@ services:
       - kafka
     environment:
       - KAFKA_BROKERCONNECT=kafka:19092
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
 
   # Databases
   # mysql:
@@ -136,7 +148,10 @@ services:
       - data_redis:/data
     networks:
       - network_shared
-
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: always
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
@@ -323,9 +338,9 @@ volumes:
   # data_postgresql:
   # data_clickhouse:
   data_redis:
-  # data_influxdb:
-  # data_neo4j:
-  # data_couchdb:
+    # data_influxdb:
+    # data_neo4j:
+    # data_couchdb:
 
 
 networks:
