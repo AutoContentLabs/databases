@@ -18,12 +18,14 @@ services:
   # Message Brokers
   kafka:
     image: apache/kafka-native:3.9.0
-    networks:
-      - network_shared
     ports:
       - '9092:9092'
       - '9093:9093'
+    volumes:
+      - data_kafka:/var/lib/kafka/data      
     env_file: .env
+    networks:
+      - network_shared
     deploy:
       replicas: 1
       resources:
