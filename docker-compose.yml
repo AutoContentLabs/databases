@@ -26,6 +26,13 @@ services:
     env_file: .env
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
       restart_policy:
         condition: always
     healthcheck:
@@ -44,29 +51,43 @@ services:
       - network_shared
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
       restart_policy:
         condition: always
-    # healthcheck:
-    #   test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
-    #   interval: 10s
-    #   retries: 5
-    #   timeout: 10s
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
+      interval: 10s
+      retries: 5
+      timeout: 10s
 
-    # # Message Brokers Management Tools
-  kafdrop:
-    image: obsidiandynamics/kafdrop:4.0.2
-    ports:
-      - "9001:9000"
-    networks:
-      - network_shared
-    depends_on:
-      - kafka
-    environment:
-      - KAFKA_BROKERCONNECT=kafka:19092
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: always
+  # # Message Brokers Management Tools
+  # kafdrop:
+  #   image: obsidiandynamics/kafdrop:4.0.2
+  #   ports:
+  #     - "9001:9000"
+  #   networks:
+  #     - network_shared
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     - KAFKA_BROKERCONNECT=kafka:19092
+  #   deploy:
+  #     replicas: 1
+  #     resources:
+  #       limits:
+  #         cpus: "1.0"
+  #         memory: "2g"
+  #       reservations:
+  #         cpus: "0.5"
+  #         memory: "1g"
+  #     restart_policy:
+  #       condition: always
 
   # Databases
   # mysql:
@@ -150,8 +171,16 @@ services:
       - network_shared
     deploy:
       replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
       restart_policy:
         condition: always
+
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
