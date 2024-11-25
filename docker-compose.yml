@@ -47,6 +47,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - data_rabbitmq:/var/lib/rabbitmq
     networks:
       - network_shared
     deploy:
@@ -180,7 +182,6 @@ services:
           memory: "1g"
       restart_policy:
         condition: always
-
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
@@ -361,7 +362,8 @@ services:
 volumes:
   # backup:
   # logs:
-  # data_kafka:
+  data_kafka:
+  data_rabbitmq:
   # data_mysql:
   # data_mongodb:
   # data_postgresql:
