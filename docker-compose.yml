@@ -22,7 +22,7 @@ services:
       - '9092:9092'
       - '9093:9093'
     volumes:
-      - data_kafka:/var/lib/kafka/data      
+      - data_kafka:/var/lib/kafka/data
     env_file: .env
     networks:
       - network_shared
@@ -298,6 +298,15 @@ services:
   #   networks:
   #     - network_shared
 
+  # Tracking Services
+  zipkin:
+    image: openzipkin/zipkin
+    env_file: .env
+    ports:
+      - "9411:9411"
+    networks:
+      - network_shared
+      
   # # All Database Exporter
   # mysql-exporter:
   #   image: prom/mysqld-exporter:latest
@@ -365,8 +374,8 @@ volumes:
   # backup:
   # logs:
   data_kafka:
-  data_rabbitmq:
-  # data_mysql:
+  data_rabbitmq: # data_mysql:
+
   # data_mongodb:
   # data_postgresql:
   # data_clickhouse:
