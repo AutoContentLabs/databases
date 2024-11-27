@@ -341,11 +341,6 @@ services:
       - "14268:14268" # HTTP (traces)
       - "16686:16686" # Jaeger UI
       - "9412:9411" # Jaeger Zipkin Compatibility (9412)
-    command:
-      - "--set"
-      - "receivers.otlp.protocols.http.endpoint=0.0.0.0:4318"
-      - "--set"
-      - "receivers.otlp.protocols.grpc.endpoint=0.0.0.0:4317"
     networks:
       - network_shared
     deploy:
