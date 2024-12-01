@@ -36,7 +36,7 @@ services:
           cpus: "0.5"
           memory: "1g"
       restart_policy:
-        condition: always
+        condition: on-failure
     healthcheck:
       test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
       interval: 30s # It may take some time for the group coordinator to become fully accessible.
@@ -63,7 +63,7 @@ services:
           cpus: "0.5"
           memory: "1g"
       restart_policy:
-        condition: always
+        condition: on-failure
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15672/api/overview" ]
       interval: 10s
@@ -183,7 +183,7 @@ services:
           cpus: "0.5"
           memory: "1g"
       restart_policy:
-        condition: always
+        condition: on-failure
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
@@ -316,7 +316,7 @@ services:
           cpus: "0.5"
           memory: "1g"
       restart_policy:
-        condition: always
+        condition: on-failure
 
 
   jaeger:
@@ -358,7 +358,7 @@ services:
           cpus: "0.5"
           memory: "1g"
       restart_policy:
-        condition: always
+        condition: on-failure
   # # All Database Exporter
   # mysql-exporter:
   #   image: prom/mysqld-exporter:latest
