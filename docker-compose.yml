@@ -20,7 +20,7 @@ services:
     image: apache/kafka-native:3.9.0
     ports:
       - '9092:9092'
-      - '9093:9093'
+      - '19092:19092'
     volumes:
       - data_kafka:/var/lib/kafka/data
     env_file: .env
