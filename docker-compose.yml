@@ -14,7 +14,6 @@ services:
     depends_on:
       logstash:
       mysql:
-        condition: service_healthy
     logging:
       driver: "gelf"
       options:
@@ -284,18 +283,32 @@ services:
       - "9300:9300"
     networks:
       - network_shared # - network_logging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s      
 
   # Logstash (ELK Stack)
   logstash:
     image: docker.elastic.co/logstash/logstash:7.10.0
     ports:
-      - "5044:5044" # Logstash Beats input
+      - "5044:5044"  # Logstash Beats input
+      - "9600:9600"  # Logstash API port (health check için)
     networks:
       - network_shared #- network_logging
     volumes:
         - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf     
     depends_on:
       - elasticsearch
+    # Healthcheck for Logstash
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600/_node/pipelines"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s      
 
   # Kibana (ELK Stack)
   kibana:
