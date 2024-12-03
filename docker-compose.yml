@@ -1,19 +1,23 @@
 services:
 
-  # app:
-  #   env_file: .env
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - backup:/backup
-  #     - logs:/logs
-  #   networks:
-  #     - network_shared
-  #   entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
+  app:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - backup:/backup
+      - logs:/logs
+    networks:
+      - network_shared
+    entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://logstash:5044"        
 
   # Message Brokers
   kafka:
@@ -94,26 +98,26 @@ services:
   #       condition: always
 
   # Databases
-  # mysql:
-  #   image: mysql:9.0
-  #   env_file: .env
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - /var/run/mysqld:/var/run/mysqld
-  #     - data_mysql:/var/lib/mysql
-  #   networks:
-  #     - network_shared
-  #   # performans
-  #   mem_limit: 2g
-  #   cpu_shares: 1024
-  #   # check
-  #   healthcheck:
-  #     test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-  #     interval: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #     timeout: 10s
+  mysql:
+    image: mysql:9.0
+    env_file: .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/run/mysqld:/var/run/mysqld
+      - data_mysql:/var/lib/mysql
+    networks:
+      - network_shared
+    # performans
+    mem_limit: 2g
+    cpu_shares: 1024
+    # check
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
   # mongo:
   #   image: mongo:8.0.3
@@ -476,8 +480,3 @@ networks:
     driver: bridge
   network_logging:
     driver: bridge
-
-logging:
-  driver: "gelf"
-  options:
-    gelf-address: "udp://logstash:5044"
