@@ -458,8 +458,9 @@ services:
   #     - network_shared
 
 volumes:
-  # backup:
-  # logs:
+  backup:
+  logs:
+  data_mysql:
   data_kafka:
   data_rabbitmq: # data_mysql:
 
