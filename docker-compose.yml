@@ -13,9 +13,9 @@ services:
     entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
     depends_on:
       logstash:
-        condition: service_healthy
+        condition: service_started
       mysql:
-        condition: service_healthy
+        condition: service_started
     logging:
       driver: "gelf"
       options:
@@ -335,6 +335,16 @@ services:
     networks:
       - network_shared # - network_monitoring
 
+  # Open Telemetry
+  otlp:
+    image: otel/opentelemetry-collector:latest
+    env_file: .env
+    ports:
+      - "4317:4317"
+      - "55680:55680"      
+    networks:
+      - network_shared # - network_logging      
+
   # Tracking Services
   zipkin:
     image: openzipkin/zipkin
@@ -370,7 +380,7 @@ services:
     #   - JAEGER_REPORTER_LOG_SPANS=true
     #   - COLLECTOR_ZIPKIN_HTTP_PORT=9411
     ports:
-      - "4317:4317" # OTLP gRPC
+      # - "4317:4317" # OTLP gRPC
       - "4318:4318" # OTLP HTTP
       - "5775:5775/udp"
       - "5778:5778" # Agent port
@@ -462,6 +472,16 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - network_shared # - network_monitoring
+
+  # Graylog
+  graylog:
+    image: graylog/graylog:6.1
+    ports:
+      - "9000:9000"  # Graylog UI
+      - "12201:12201/udp"  # GELF UDP input
+    networks:
+      - network_shared # - network_monitoring or network_logging 
+    
   # # Web Services
   # web:
   #   image: nginx:1.27
