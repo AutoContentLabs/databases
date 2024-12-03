@@ -184,6 +184,7 @@ services:
           memory: "1g"
       restart_policy:
         condition: on-failure
+        
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
@@ -266,37 +267,53 @@ services:
   #   command: >
   #     sh -c "while true; do sleep 30; done"
 
-  # # Elasticsearch Services
-  # elasticsearch:
-  #   image: elasticsearch:8.15.3
-  #   env_file: .env
-  #   environment:
-  #     - discovery.type=single-node
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ports:
-  #     - "9200:9200"
-  #     - "9300:9300"
-  #   networks:
-  #     - network_shared
+  # Elasticsearch (ELK Stack)
+  elasticsearch:
+    image: elasticsearch:8.15.3
+    env_file: .env
+    environment:
+      - discovery.type=single-node
+      # - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - network_shared # - network_logging
 
-  # kibana:
-  #   image: kibana:8.15.3
-  #   env_file: .env
-  #   ports:
-  #     - "5601:5601"
-  #   networks:
-  #     - network_shared
+  # Logstash (ELK Stack)
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.0
+    ports:
+      - "5044:5044" # Logstash Beats input
+    networks:
+      - network_shared #- network_logging
+    volumes:
+        - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf     
+    depends_on:
+      - elasticsearch
 
-  # # Monitoring Services
-  # prometheus:
-  #   image: prom/prometheus:v2.53.3
-  #   env_file: .env
-  #   ports:
-  #     - "9090:9090"
-  #   volumes:
-  #     - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   networks:
-  #     - network_shared
+  # Kibana (ELK Stack)
+  kibana:
+    image: kibana:8.16.1
+    env_file: .env
+    ports:
+      - "5601:5601" # Kibana UI
+    networks:
+      - network_shared # - network_logging
+    depends_on:
+      - elasticsearch      
+
+  # Monitoring Services
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.53.3
+    env_file: .env
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - network_shared # - network_monitoring
 
   # Tracking Services
   zipkin:
@@ -317,8 +334,8 @@ services:
           memory: "1g"
       restart_policy:
         condition: on-failure
-
-
+  
+  # jaeger
   jaeger:
     # image: jaegertracing/jaeger:2.0.0
     image: jaegertracing/all-in-one:latest
@@ -339,13 +356,12 @@ services:
       - "5778:5778" # Agent port
       - "9412:9411" # Jaeger Zipkin Compatibility (9412)
       - "6831:6831/udp"
-      - "6832:6832/udp" 
+      - "6832:6832/udp"
       - "14250:14250" # gRPC
-      - "14267:14267" # 
+      - "14267:14267" #
       - "14268:14268" # HTTP (traces)
       - "16686:16686" # Jaeger UI
-      - "55000:55000" # 
-
+      - "55000:55000" #
     networks:
       - network_shared
     deploy:
@@ -359,6 +375,7 @@ services:
           memory: "1g"
       restart_policy:
         condition: on-failure
+
   # # All Database Exporter
   # mysql-exporter:
   #   image: prom/mysqld-exporter:latest
@@ -400,17 +417,31 @@ services:
   #   depends_on:
   #     - redis
 
-  # grafana:
-  #   image: grafana/grafana:11.3.0
-  #   env_file: .env
-  #   volumes:
-  #     - ./monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - network_shared
-  #   depends_on:
-  #     - prometheus
+  # Grafana
+  grafana:
+    image: grafana/grafana:11.3.0
+    env_file: .env
+    volumes:
+      - ./monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini
+    ports:
+      - "3000:3000"
+    networks:
+      - network_shared # - network_monitoring
+    depends_on:
+      - prometheus
+
+  # cAdvisor
+  cadvisor:
+    image: google/cadvisor:latest
+    ports:
+      - "8080:8080" # cAdvisor UI
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - network_shared # - network_monitoring
 
   # # Web Services
   # web:
@@ -441,3 +472,12 @@ networks:
   network_shared:
     # docker network create network_shared
     external: true # Ensure this network exists or create it manually
+  network_monitoring:
+    driver: bridge
+  network_logging:
+    driver: bridge
+
+logging:
+  driver: "gelf"
+  options:
+    gelf-address: "udp://logstash:5044"
