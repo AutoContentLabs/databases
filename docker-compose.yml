@@ -12,6 +12,7 @@ services:
       - network_shared
     entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
     depends_on:
+      logstash:
       mysql:
         condition: service_healthy
     logging:
