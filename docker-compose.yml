@@ -12,14 +12,14 @@ services:
       - network_shared
     entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
     depends_on:
-      logstash:
-        condition: service_started
+      # logstash:
+      #   condition: service_healthy
       mysql:
         condition: service_started
-    logging:
-      driver: "gelf"
-      options:
-        gelf-address: "udp://logstash:5044"
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://logstash:5044"
 
   # Message Brokers
   kafka:
@@ -274,54 +274,55 @@ services:
   #     sh -c "while true; do sleep 30; done"
 
   # Elasticsearch (ELK Stack)
-  elasticsearch:
-    image: elasticsearch:8.15.3
-    env_file: .env
-    environment:
-      - discovery.type=single-node
-      # - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    networks:
-      - network_shared # - network_logging
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s" ]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
+  # elasticsearch:
+  #   image: elasticsearch:8.16.1
+  #   env_file: .env
+  #   # environment:
+  #   #   - discovery.type=single-node
+  #   #   - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+  #   ports:
+  #     - "9200:9200"
+  #     - "9300:9300"
+  #   networks:
+  #     - network_shared # - network_logging
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s" ]
+  #     interval: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #     timeout: 10s
 
   # Logstash (ELK Stack)
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.10.0
-    ports:
-      - "5044:5044" # Logstash Beats input
-      - "9600:9600" # Logstash API port (health check için)
-    networks:
-      - network_shared #- network_logging
-    volumes:
-      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-    depends_on:
-      - elasticsearch
-    # Healthcheck for Logstash
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9600/_node/pipelines" ]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:7.10.0
+  #   ports:
+  #     - "5044:5044/udp" # Logstash Beats input
+  #     - "9600:9600" # Logstash API port (health check için)
+  #   networks:
+  #     - network_shared #- network_logging
+  #   volumes:
+  #     - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+  #   # Healthcheck for Logstash
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:9600" ]
+  #     interval: 10s
+  #     retries: 5
+  #     start_period: 30s
+  #     timeout: 10s
 
   # Kibana (ELK Stack)
-  kibana:
-    image: kibana:8.16.1
-    env_file: .env
-    ports:
-      - "5601:5601" # Kibana UI
-    networks:
-      - network_shared # - network_logging
-    depends_on:
-      - elasticsearch
+  # kibana:
+  #   image: kibana:8.16.1
+  #   env_file: .env
+  #   ports:
+  #     - "5601:5601" # Kibana UI
+  #   networks:
+  #     - network_shared # - network_logging
+  #   depends_on:
+  #     - elasticsearch
 
   # Monitoring Services
   # Prometheus
@@ -341,7 +342,7 @@ services:
     env_file: .env
     ports:
       - "4317:4317"
-      - "55680:55680"      
+      - "55680:55680"
     networks:
       - network_shared # - network_logging      
 
@@ -474,14 +475,14 @@ services:
       - network_shared # - network_monitoring
 
   # Graylog
-  graylog:
-    image: graylog/graylog:6.1
-    ports:
-      - "9000:9000"  # Graylog UI
-      - "12201:12201/udp"  # GELF UDP input
-    networks:
-      - network_shared # - network_monitoring or network_logging 
-    
+  # graylog:
+  #   image: graylog/graylog:6.1
+  #   env_file: .env
+  #   ports:
+  #     - "9000:9000" # Graylog UI
+  #     - "12201:12201/udp" # GELF UDP input
+  #   networks:
+  #     - network_shared # - network_monitoring or network_logging 
   # # Web Services
   # web:
   #   image: nginx:1.27
