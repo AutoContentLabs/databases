@@ -13,11 +13,13 @@ services:
     entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
     depends_on:
       logstash:
+        condition: service_healthy
       mysql:
+        condition: service_healthy
     logging:
       driver: "gelf"
       options:
-        gelf-address: "udp://logstash:5044"        
+        gelf-address: "udp://logstash:5044"
 
   # Message Brokers
   kafka:
@@ -188,7 +190,7 @@ services:
           memory: "1g"
       restart_policy:
         condition: on-failure
-        
+
   # influxdb:
   #   image: influxdb:2
   #   env_file: .env
@@ -284,31 +286,31 @@ services:
     networks:
       - network_shared # - network_logging
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s" ]
       interval: 10s
       retries: 5
       start_period: 30s
-      timeout: 10s      
+      timeout: 10s
 
   # Logstash (ELK Stack)
   logstash:
     image: docker.elastic.co/logstash/logstash:7.10.0
     ports:
-      - "5044:5044"  # Logstash Beats input
-      - "9600:9600"  # Logstash API port (health check için)
+      - "5044:5044" # Logstash Beats input
+      - "9600:9600" # Logstash API port (health check için)
     networks:
       - network_shared #- network_logging
     volumes:
-        - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf     
+      - ./monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     depends_on:
       - elasticsearch
     # Healthcheck for Logstash
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9600/_node/pipelines"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9600/_node/pipelines" ]
       interval: 10s
       retries: 5
       start_period: 30s
-      timeout: 10s      
+      timeout: 10s
 
   # Kibana (ELK Stack)
   kibana:
@@ -319,7 +321,7 @@ services:
     networks:
       - network_shared # - network_logging
     depends_on:
-      - elasticsearch      
+      - elasticsearch
 
   # Monitoring Services
   # Prometheus
@@ -352,7 +354,7 @@ services:
           memory: "1g"
       restart_policy:
         condition: on-failure
-  
+
   # jaeger
   jaeger:
     # image: jaegertracing/jaeger:2.0.0
@@ -460,7 +462,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - network_shared # - network_monitoring
-
   # # Web Services
   # web:
   #   image: nginx:1.27
