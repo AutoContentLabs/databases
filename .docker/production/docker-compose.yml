@@ -1,0 +1,51 @@
+services:
+
+  mysql-migration:
+    build:
+      context: ../../
+      dockerfile: .docker/production/Dockerfile
+    env_file:
+      - .env.${APP_ENV}
+    volumes:
+      - backup:/backup
+      - logs:/logs      
+    networks:
+      - network_shared
+    restart: on-failure
+    entrypoint: [ "/bin/sh", "-c", "scripts/entrypoint.sh" ]
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Databases
+  mysql:
+    image: mysql:9.0
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/run/mysqld:/var/run/mysqld
+      - data_mysql:/var/lib/mysql
+    networks:
+      - network_shared
+    # performans
+    mem_limit: 2g
+    cpu_shares: 1024
+    # check
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 30s
+      retries: 5
+      timeout: 5s
+
+volumes:
+  backup:
+  logs:
+  data_mysql:
+
+
+networks:
+  network_shared:
+    # docker network create network_shared
+    external: true # Ensure this network exists or create it manually

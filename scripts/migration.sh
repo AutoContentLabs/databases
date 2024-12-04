@@ -1,5 +1,5 @@
 #!/bin/bash
-# scripts/migrate.sh
+# scripts/migration.sh
 
 # Config dosyasını parametre olarak al
 CONFIG_FILE="$1"

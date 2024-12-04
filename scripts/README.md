@@ -7,7 +7,7 @@ Bu proje, MySQL veritabanı için yedekleme, geri yükleme, migration ve rollbac
 - `backup.sh`: Basit yedekleme işlemi gerçekleştirir.
 - `backup_advanced.sh`: Daha gelişmiş yedekleme işlemi sunar, örneğin sıkıştırma ve otomatik dosya isimlendirme gibi.
 - `restore.sh`: Veritabanı yedeğini geri yükler.
-- `migrate.sh`: Veritabanı migration dosyalarını çalıştırır.
+- `migration.sh`: Veritabanı migration dosyalarını çalıştırır.
 - `rollback.sh`: Belirli bir versiyona kadar rollback işlemi yapar.
 
 ## Gereksinimler
@@ -17,7 +17,7 @@ Bu proje, MySQL veritabanı için yedekleme, geri yükleme, migration ve rollbac
 - `config.json` yapılandırma dosyası
 
 ```bash
-chmod +x scripts/backup.sh scripts/backup_advanced.sh scripts/restore.sh scripts/migrate.sh scripts/rollback.sh
+chmod +x scripts/backup.sh scripts/backup_advanced.sh scripts/restore.sh scripts/migration.sh scripts/rollback.sh
 ```
 
 ## Kullanım
@@ -91,7 +91,7 @@ Migration (Veritabanı Güncelleme)
 Migration dosyalarını uygulamak için:
 
 ```bash
-migrate.sh /path/to/config.json
+migration.sh /path/to/config.json
 ```
 
 Rollback (Geri Alma)
