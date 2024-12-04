@@ -18,12 +18,12 @@ services:
         condition: service_healthy
       # logstash:
       #   condition: service_healthy
-    # logging:
-    #   driver: "gelf"
-    #   options:
-    #     gelf-address: "udp://logstash:5044"         
+      # logging:
+      #   driver: "gelf"
+      #   options:
+      #     gelf-address: "udp://logstash:5044"         
 
-  # Message Brokers
+      # Message Brokers
   kafka:
     image: apache/kafka-native:3.9.0
     ports:
@@ -127,58 +127,60 @@ services:
       retries: 5
       timeout: 5s
 
-  # mongo:
-  #   image: mongo:8.0.3
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - data_mongodb:/data/db
-  #   networks:
-  #     - network_shared
-  #   healthcheck:
-  #     test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  mongo:
+    image: mongo:8.0.3
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "27017:27017"
+    volumes:
+      - data_mongodb:/data/db
+    networks:
+      - network_shared
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # postgresql:
-  #   image: postgres:13
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - data_postgresql:/var/lib/postgresql/data
-  #   networks:
-  #     - network_shared
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  postgresql:
+    image: postgres:13
+    env_file:
+      - .env.${APP_ENV:-production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - data_postgresql:/var/lib/postgresql/data
+    networks:
+      - network_shared
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres_user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # cassandra:
-  #   image: cassandra:5
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "9042:9042"
-  #   networks:
-  #     - network_shared
+  cassandra:
+    image: cassandra:5
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9042:9042"
+    volumes:
+      - data_cassandra:/var/lib/cassandra
+    networks:
+      - network_shared
 
-  # clickhouse:
-  #   image: clickhouse/clickhouse-server:24
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "9000:9000"
-  #     - "8123:8123"
-  #   volumes:
-  #     - data_clickhouse:/var/lib/clickhouse
-  #   networks:
-  #     - network_shared
+  clickhouse:
+    image: clickhouse/clickhouse-server:24
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - data_clickhouse:/var/lib/clickhouse
+    networks:
+      - network_shared
 
   redis:
     image: redis:7
@@ -202,16 +204,16 @@ services:
       restart_policy:
         condition: on-failure
 
-  # influxdb:
-  #   image: influxdb:2
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "8086:8086"
-  #   volumes:
-  #     - data_influxdb:/var/lib/influxdb
-  #   networks:
-  #     - network_shared
+  influxdb:
+    image: influxdb:2
+    env_file:
+      - .env.${APP_ENV}
+    ports:
+      - "8086:8086"
+    volumes:
+      - data_influxdb:/var/lib/influxdb
+    networks:
+      - network_shared
 
   # neo4j:
   #   image: neo4j:5
@@ -292,62 +294,64 @@ services:
   #     sh -c "while true; do sleep 30; done"
 
   # Elasticsearch (ELK Stack)
-  # elasticsearch:
-  #   image: elasticsearch:8.16.1
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   # environment:
-  #   #   - discovery.type=single-node
-  #   #   - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-  #   ports:
-  #     - "9200:9200"
-  #     - "9300:9300"
-  #   networks:
-  #     - network_shared # - network_logging
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s" ]
-  #     interval: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #     timeout: 10s
-
-  # Logstash (ELK Stack)
-  # logstash:
-  #   image: docker.elastic.co/logstash/logstash:7.10.0
-    #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "5044:5044/udp" # Logstash Beats input
-  #     - "9600:9600" # Logstash API port (health check için)
-  #   networks:
-  #     - network_shared #- network_logging
-  #   volumes:
-  #     - ../../monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-  #   depends_on:
-  #     elasticsearch:
-  #       condition: service_healthy
-  #   # Healthcheck for Logstash
-  #   healthcheck:
-  #     test: [ "CMD", "curl", "-f", "http://localhost:9600" ]
-  #     interval: 10s
-  #     retries: 5
-  #     start_period: 30s
-  #     timeout: 10s
+  elasticsearch:
+    image: elasticsearch:8.16.1
+    env_file:
+      - .env.${APP_ENV:-production}
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - network_shared # - network_logging
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data_elasticsearch:/usr/share/elasticsearch/data
 
   # Kibana (ELK Stack)
-  # kibana:
-  #   image: kibana:8.16.1
-  #   env_file:
-  #     - .env.${APP_ENV}
-  #   ports:
-  #     - "5601:5601" # Kibana UI
-  #   networks:
-  #     - network_shared # - network_logging
-  #   depends_on:
-  #     - elasticsearch
+  kibana:
+    image: kibana:8.16.1
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200        
+    ports:
+      - "5601:5601" # Kibana UI
+    networks:
+      - network_shared # - network_logging
+    depends_on:
+      - elasticsearch
 
-  # Monitoring Services
-  # Prometheus
+    # Logstash (ELK Stack)
+    # logstash:
+    #   image: docker.elastic.co/logstash/logstash:7.10.0
+    #   env_file:
+    #     - .env.${APP_ENV}
+    #   ports:
+    #     - "5044:5044/udp" # Logstash Beats input
+    #     - "9600:9600" # Logstash API port (health check için)
+    #   networks:
+    #     - network_shared #- network_logging
+    #   volumes:
+    #     - ../../monitoring/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    #   depends_on:
+    #     elasticsearch:
+    #       condition: service_healthy
+    #   # Healthcheck for Logstash
+    #   healthcheck:
+    #     test: [ "CMD", "curl", "-f", "http://localhost:9600" ]
+    #     interval: 10s
+    #     retries: 5
+    #     start_period: 30s
+    #     timeout: 10s
+
+    # Monitoring Services
+    # Prometheus
   prometheus:
     image: prom/prometheus:v2.53.3
     env_file:
@@ -497,7 +501,7 @@ services:
   cadvisor:
     image: google/cadvisor:latest
     env_file:
-      - .env.${APP_ENV}    
+      - .env.${APP_ENV}
     ports:
       - "8080:8080" # cAdvisor UI
     volumes:
@@ -507,6 +511,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - network_shared # - network_monitoring
+      
   # Graylog
   # graylog:
   #   image: graylog/graylog:6.1
@@ -536,15 +541,15 @@ volumes:
   data_mysql:
   data_kafka:
   data_rabbitmq: # data_mysql:
-
-  # data_mongodb:
-  # data_postgresql:
-  # data_clickhouse:
+  data_mongodb:
+  data_postgresql:
+  data_cassandra:
+  data_clickhouse:
   data_redis:
-    # data_influxdb:
+  data_influxdb:
     # data_neo4j:
     # data_couchdb:
-
+  data_elasticsearch:
 
 networks:
   network_shared:
