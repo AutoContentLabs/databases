@@ -137,6 +137,8 @@ services:
       - data_mongodb:/data/db
     networks:
       - network_shared
+    restart: on-failure
+    command: mongod
     healthcheck:
       test: [ "CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })" ]
       interval: 10s
@@ -319,14 +321,13 @@ services:
     env_file:
       - .env.${APP_ENV}
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200        
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
       - "5601:5601" # Kibana UI
     networks:
       - network_shared # - network_logging
     depends_on:
       - elasticsearch
-
     # Logstash (ELK Stack)
     # logstash:
     #   image: docker.elastic.co/logstash/logstash:7.10.0
@@ -511,7 +512,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
       - network_shared # - network_monitoring
-      
   # Graylog
   # graylog:
   #   image: graylog/graylog:6.1
@@ -550,6 +550,7 @@ volumes:
     # data_neo4j:
     # data_couchdb:
   data_elasticsearch:
+
 
 networks:
   network_shared:
